@@ -1,7 +1,10 @@
 "use client"
+
 import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { signIn } from "../features/auth/authSlice";
+import { useSignUpMutation } from "../features/services/signApi";
 
 type FormFields = {
   name: string,
@@ -16,11 +19,21 @@ const SignUpForm = () => {
     watch,
     formState: { errors },
   } = useForm<FormFields>();
-
-  const [submittedData, setSubmittedData] = useState(null);
+  const dispatch = useDispatch();
+  const [signUpApi, { isLoading, error }] = useSignUpMutation();
   const password = watch("password");
 
-  const onSubmit: SubmitHandler<FormFields> = (data) => console.log("Sign Up Data:", data);
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    try {
+      // Remove confirm_password before sending to API
+      const { confirm_password, ...submitData } = data;
+      const result = await signUpApi(submitData).unwrap();
+      dispatch(signIn(result.user)); // assuming API returns { user, token }
+      // Optionally store token, redirect, etc.
+    } catch (err) {
+      // handle error (show message, etc.)
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 rounded shadow">
@@ -112,9 +125,13 @@ const SignUpForm = () => {
         <button
           type="submit"
           className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+          disabled={isLoading}
         >
-          Sign Up
+          {isLoading ? "Signing Up..." : "Sign Up"}
         </button>
+        {error && (
+          <p className="text-red-500 text-sm mt-2">Sign up failed. Please try again.</p>
+        )}
       </form>
     </div>
   );
