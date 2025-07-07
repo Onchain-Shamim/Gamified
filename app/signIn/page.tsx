@@ -46,6 +46,7 @@ const SignInForm = () => {
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
       const result = await signInApi(data).unwrap();
+      console.log("Sign In Result: ", result);
       dispatch(signIn(result.user)); // assuming API returns { user, token }
       // Optionally store token, redirect, etc.
     } catch (err) {
