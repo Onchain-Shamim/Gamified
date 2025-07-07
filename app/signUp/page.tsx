@@ -30,7 +30,7 @@ const SignUpForm = () => {
       if(isSuccess){
         console.log("Sign Up Successful: ", data);
         dispatch(signIn(data?.data));
-        router.push("/profile"); // or your desired route
+        router.push("/private/profile"); // or your desired route
       }
       if(isError){
         console.log("Sign Up Error:", (error as any)?.data?.error?.message)
@@ -40,7 +40,7 @@ const SignUpForm = () => {
 
   useEffect(() => {
     if(!auth?.isLoading && auth?.user){
-      router.push("/profile");
+      router.push("/private/profile");
     }
   }, [auth, router]);
 

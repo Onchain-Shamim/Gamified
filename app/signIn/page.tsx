@@ -29,7 +29,7 @@ const SignInForm = () => {
       if(isSuccess){
         console.log("Sign In Successful: ", data);// or your desired route
         dispatch(signIn(data?.data)); // assuming API returns { user, token }
-        router.push("/profile"); // assuming API returns { user, token }
+        router.push("/private/profile"); // assuming API returns { user, token }
       }
       if(isError){
         console.log("Sign In Error:", (error as any)?.data?.error?.message)
@@ -39,7 +39,7 @@ const SignInForm = () => {
 
   useEffect(() => {
     if(!auth?.isLoading && auth?.user){
-      router.push("/profile");
+      router.push("/private/profile");
     }
   }, [auth, router]);
 

@@ -1,47 +1,98 @@
-"use client";
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { signOut } from '../app/features/auth/authSlice';
 
 const Navbar = () => {
   const auth = useSelector((state: any) => state.auth);
   const dispatch = useDispatch();
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = () => {
     dispatch(signOut());
     setDropdownOpen(false);
   };
 
-  const handleProfileClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setDropdownOpen((prev) => !prev);
+  const handleProfileClick = () => {
+    setDropdownOpen(prev => !prev);
   };
 
+  // Handle outside click
+  useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
+      setDropdownOpen(false);
+    }
+  };
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
+
+
   return (
-    <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#f5f5f5' }}>
-      <h1>Navbar</h1>
-      <div>Pages</div>
-      <div style={{ position: 'relative' }}>
+    <nav className="flex items-center justify-between px-6 py-4 bg-gray-100 shadow-sm">
+      <h1 className="text-xl font-bold text-gray-800"><Link href="/">Navbar</Link></h1>
+
+      <div className="flex items-center gap-4">
         {(!auth?.isLoading && auth?.user) ? (
           <>
-            <Link href="/dashboard" style={{ marginRight: '1rem' }}>Dashboard</Link>
-            <Link href="/profile" style={{ marginRight: '1rem' }} onClick={handleProfileClick}>
-              Profile
+            <Link
+              href="/private/dashboard"
+              className="text-gray-800 hover:text-blue-600 transition"
+            >
+              Dashboard
             </Link>
-            {dropdownOpen && (
-              <div style={{ position: 'absolute', top: '2.5rem', right: 0, background: '#fff', border: '1px solid #ccc', borderRadius: '0.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', zIndex: 10 }}>
-                <button onClick={handleSignOut} style={{ display: 'block', width: '100%', padding: '0.5rem 1rem', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}>
-                  Sign Out
-                </button>
-              </div>
-            )}
+
+            {/* 👇 Wrap both button and dropdown in this ref */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={handleProfileClick}
+                className="ml-2 text-gray-800 hover:text-blue-600 transition focus:outline-none"
+              >
+                Profile
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  <Link
+                    href="/private/profile"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <>
-            <Link href="/signIn" style={{ marginRight: '1rem' }}>Sign In</Link>
-            <Link href="/signUp" style={{ marginRight: '1rem' }}>Sign Up</Link>
+            <Link
+              href="/signIn"
+              className="text-gray-800 hover:text-blue-600 transition"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/signUp"
+              className="text-gray-800 hover:text-blue-600 transition"
+            >
+              Sign Up
+            </Link>
           </>
         )}
       </div>

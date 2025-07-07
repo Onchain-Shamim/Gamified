@@ -22,9 +22,20 @@ const authSlice = createSlice({
       localStorage.removeItem("access_token");
       state.user = null;
       state.isLoading = false;
+      console.log("User signed out");
+    },
+
+    updateProfile: (state, action) => {
+      // Merge updated fields into the user object
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          ...action.payload,
+        };
+      }
     },
   },
 });
 
-export const { signIn, signOut } = authSlice.actions;
+export const { signIn, signOut, updateProfile } = authSlice.actions;
 export default authSlice.reducer;
