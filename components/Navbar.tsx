@@ -22,6 +22,7 @@ const Navbar = () => {
   return (
     <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#f5f5f5' }}>
       <h1>Navbar</h1>
+      <div>Pages</div>
       <div style={{ position: 'relative' }}>
         {(!auth?.isLoading && auth?.user) ? (
           <>
