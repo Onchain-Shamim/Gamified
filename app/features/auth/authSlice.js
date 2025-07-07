@@ -1,21 +1,27 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  isSignedIn: false,
+  isLoading: true,
   user: null,
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     signIn: (state, action) => {
-      state.isSignedIn = true;
-      state.user = action.payload;
+      const { id, name, role, photoUrl, access_token } = action.payload;
+      if (access_token) {
+        localStorage.setItem("access_token", access_token);
+      }
+
+      state.user = { id, name, role, photoUrl };
+      state.isLoading = false;
     },
     signOut: (state) => {
-      state.isSignedIn = false;
+      localStorage.removeItem("access_token");
       state.user = null;
+      state.isLoading = false;
     },
   },
 });

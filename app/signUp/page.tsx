@@ -1,18 +1,19 @@
 "use client"
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { signIn } from "../features/auth/authSlice";
-import { useSignUpMutation } from "../features/services/signApi";
+import { useSignUpMutation } from "../features/services/usersApi";
+import { useRouter } from "next/navigation";
 
 type FormFields = {
   name: string,
-  phoneOrUserName: string,
+  phone: string,
   password: string,
-  confirm_password: string,
 }
 const SignUpForm = () => {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -20,14 +21,32 @@ const SignUpForm = () => {
     formState: { errors },
   } = useForm<FormFields>();
   const dispatch = useDispatch();
-  const [signUpApi, { isLoading, error }] = useSignUpMutation();
+  const auth = useSelector((state: any) => state.auth);
+  const [signUpApi, { isLoading, isSuccess , isError, error, data }] = useSignUpMutation();
   const password = watch("password");
+
+  useEffect(() => {
+    if(!isLoading){
+      if(isSuccess){
+        console.log("Sign Up Successful: ", data);
+        dispatch(signIn(data?.data));
+        router.push("/profile"); // or your desired route
+      }
+      if(isError){
+        console.log("Sign Up Error:", (error as any)?.data?.error?.message)
+      }
+    }
+  }, [isLoading, isSuccess, isError, data, error, dispatch, router]);
+
+  useEffect(() => {
+    if(!auth?.isLoading && auth?.user){
+      router.push("/profile");
+    }
+  }, [auth, router]);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
-      // Remove confirm_password before sending to API
-      const { confirm_password, ...submitData } = data;
-      const result = await signUpApi(submitData).unwrap();
+      const result = await signUpApi(data).unwrap();
       dispatch(signIn(result.user)); // assuming API returns { user, token }
       // Optionally store token, redirect, etc.
     } catch (err) {
@@ -60,24 +79,24 @@ const SignUpForm = () => {
           )}
         </div>
 
-        {/* Phone or Username */}
+        {/* Phone number */}
         <div>
-          <label className="block text-sm font-medium mb-1">Phone or Username</label>
+          <label className="block text-sm font-medium mb-1">Phone number</label>
           <input
             type="text"
-            {...register("phoneOrUserName", {
-              required: "Phone or username is required",
+            {...register("phone", {
+              required: "Phone number is required",
               minLength: {
                 value: 4,
                 message: "Must be at least 4 characters",
               },
             })}
-            placeholder="01XXXXXXXX or username"
+            placeholder="phone number"
             className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {errors.phoneOrUserName && (
+          {errors.phone && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.phoneOrUserName.message}
+              {errors.phone.message}
             </p>
           )}
         </div>
@@ -102,25 +121,6 @@ const SignUpForm = () => {
           )}
         </div>
 
-        {/* Confirm Password */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Confirm Password</label>
-          <input
-            type="password"
-            {...register("confirm_password", {
-              required: "Please confirm your password",
-              validate: (value) =>
-                value === password || "Passwords do not match",
-            })}
-            placeholder="Confirm password"
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.confirm_password && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.confirm_password.message}
-            </p>
-          )}
-        </div>
 
         <button
           type="submit"
@@ -131,6 +131,10 @@ const SignUpForm = () => {
         </button>
         {error && (
           <p className="text-red-500 text-sm mt-2">Sign up failed. Please try again.</p>
+        )}
+        {/* Show success only after a successful sign up */}
+        {isSuccess && !isLoading && !error && (
+          <p className="text-green-600 text-sm mt-2 text-center font-semibold">User sign up successful!</p>
         )}
       </form>
     </div>
